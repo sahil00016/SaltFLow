@@ -1,0 +1,35 @@
+databases:
+  - name: saltflow-db
+    databaseName: saltflow
+    user: saltflow
+    plan: free
+
+services:
+  - type: web
+    name: saltflow-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saltflow-db
+          property: connectionString
+      - key: ADMIN_USERNAME
+        value: Radhey
+      - key: ADMIN_PASSWORD
+        value: radhey@123
+      - key: SECRET_KEY
+        value: 0042cf33f7b17ffdc3fc50f5b821b2077b8a9256a2fe18e92b1797989271ac1c
+
+  - type: web
+    name: saltflow-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://saltflow-backend.onrender.com/api
