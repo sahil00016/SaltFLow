@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "/home/sahilsonker/SaltFLow/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "/home/sahilsonker/SaltFLow/venv/lib/python3.12/site-packages"
+  ],
+  "python.analysis.autoImportCompletions": true
+}
