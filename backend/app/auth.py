@@ -5,8 +5,9 @@ Tokens expire after 8 hours (one work shift).
 """
 
 import os
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from datetime import datetime, timedelta, timezone
+import jwt
+from jwt.exceptions import InvalidTokenError
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -18,7 +19,7 @@ _http_bearer = HTTPBearer()
 
 
 def create_access_token(username: str) -> str:
-    expire = datetime.utcnow() + timedelta(hours=TOKEN_EXPIRE_HOURS)
+    expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
     return jwt.encode({"sub": username, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -32,7 +33,7 @@ def get_current_user(
         if not username:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         return username
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(
             status_code=401,
             detail="Session expired or invalid. Please log in again.",
