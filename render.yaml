@@ -7,10 +7,9 @@ databases:
 services:
   - type: web
     name: saltflow-backend
-    runtime: python
+    runtime: docker
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile.prod
     plan: free
     envVars:
       - key: DATABASE_URL
