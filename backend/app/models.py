@@ -51,6 +51,8 @@ class Order(Base):
     dispatched_quantity = Column(Integer, nullable=False, default=0)
     price_per_bag = Column(Numeric(10, 2), nullable=False)
     total_amount = Column(Numeric(12, 2), nullable=False)
+    product_name = Column(String(100), nullable=True)   # which product this order is for
+    grade = Column(String(50), nullable=True)
     order_date = Column(Date, nullable=False)
     # status: pending | partially_dispatched | fully_dispatched | cancelled
     status = Column(String(25), default="pending", nullable=False)

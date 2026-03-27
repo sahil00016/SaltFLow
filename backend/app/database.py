@@ -22,6 +22,19 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def run_migrations():
+    """Add new columns to existing tables without dropping data."""
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text(
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS product_name VARCHAR(100)"
+        ))
+        conn.execute(text(
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS grade VARCHAR(50)"
+        ))
+        conn.commit()
+
+
 def get_db():
     db = SessionLocal()
     try:

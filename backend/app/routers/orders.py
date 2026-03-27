@@ -29,6 +29,8 @@ def build_order_response(order: Order, db: Session) -> OrderResponse:
         order_code=order.order_code,
         client_id=order.client_id,
         client_name=order.client.name if order.client else None,
+        product_name=order.product_name,
+        grade=order.grade,
         quantity_required=order.quantity_required,
         dispatched_quantity=dispatched,
         remaining_quantity=order.quantity_required - dispatched,
@@ -61,6 +63,8 @@ def create_order(order_in: OrderCreate, db: Session = Depends(get_db)):
     order = Order(
         order_code=order_code,
         client_id=order_in.client_id,
+        product_name=order_in.product_name,
+        grade=order_in.grade,
         quantity_required=order_in.quantity_required,
         price_per_bag=order_in.price_per_bag,
         total_amount=total_amount,

@@ -11,6 +11,7 @@ import ClientOutstanding from './pages/ClientOutstanding';
 import Orders from './pages/Orders';
 import ActivityLogs from './pages/ActivityLogs';
 import ClientLedger from './pages/ClientLedger';
+import Clients from './pages/Clients';
 
 const contentWrap = {
   marginLeft: 220,
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/dispatch" element={<DispatchOrder />} />
           <Route path="/outstanding" element={<ClientOutstanding />} />
           <Route path="/logs" element={<ActivityLogs />} />
+          <Route path="/clients" element={<Clients />} />
           <Route path="/ledger" element={<ClientLedger />} />
           <Route path="/ledger/:clientId" element={<ClientLedger />} />
         </Routes>

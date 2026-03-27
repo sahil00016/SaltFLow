@@ -117,6 +117,8 @@ class ClientResponse(BaseModel):
 
 class OrderCreate(BaseModel):
     client_id: int
+    product_name: str
+    grade: str
     quantity_required: int
     price_per_bag: float
     order_date: date
@@ -142,6 +144,8 @@ class OrderResponse(BaseModel):
     order_code: Optional[str] = None
     client_id: int
     client_name: Optional[str] = None
+    product_name: Optional[str] = None
+    grade: Optional[str] = None
     quantity_required: int
     dispatched_quantity: int = 0
     remaining_quantity: int = 0

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOrders, cancelOrder, updatePayment, getClients, createClient, createOrder } from '../api';
+import { getOrders, cancelOrder, updatePayment, getClients, createClient, createOrder, getBatches } from '../api';
 import ErrorMessage from '../components/ErrorMessage';
 
 const thStyle = {
@@ -38,7 +38,8 @@ function PaymentBadge({ status }) {
 
 function CreateOrderModal({ onClose, onSuccess }) {
   const [clients, setClients]         = useState([]);
-  const [form, setForm]               = useState({ client_id: '', quantity_required: '', price_per_bag: '', order_date: new Date().toISOString().split('T')[0], notes: '' });
+  const [products, setProducts]       = useState([]); // distinct product+grade from batches
+  const [form, setForm]               = useState({ client_id: '', product_name: '', grade: '', quantity_required: '', price_per_bag: '', order_date: new Date().toISOString().split('T')[0], notes: '' });
   const [nc, setNc]                   = useState({ name: '', phone: '', address: '' });
   const [showNc, setShowNc]           = useState(false);
   const [err, setErr]                 = useState('');
@@ -46,7 +47,19 @@ function CreateOrderModal({ onClose, onSuccess }) {
   const [loading, setLoading]         = useState(false);
   const [ncLoading, setNcLoading]     = useState(false);
 
-  useEffect(() => { getClients().then(setClients).catch(() => {}); }, []);
+  useEffect(() => {
+    getClients().then(setClients).catch(() => {});
+    getBatches().then(batches => {
+      // Build unique product+grade list from batches that still have stock
+      const seen = new Set();
+      const list = [];
+      batches.filter(b => b.remaining_quantity > 0).forEach(b => {
+        const key = `${b.product_name}||${b.grade}`;
+        if (!seen.has(key)) { seen.add(key); list.push({ product_name: b.product_name, grade: b.grade }); }
+      });
+      setProducts(list);
+    }).catch(() => {});
+  }, []);
 
   const addClient = async (e) => {
     e.preventDefault(); setNcErr(''); setNcLoading(true);
@@ -61,7 +74,7 @@ function CreateOrderModal({ onClose, onSuccess }) {
   const submit = async (e) => {
     e.preventDefault(); setErr(''); setLoading(true);
     try {
-      const o = await createOrder({ client_id: parseInt(form.client_id), quantity_required: parseInt(form.quantity_required), price_per_bag: parseFloat(form.price_per_bag), order_date: form.order_date, notes: form.notes.trim() || null });
+      const o = await createOrder({ client_id: parseInt(form.client_id), product_name: form.product_name, grade: form.grade, quantity_required: parseInt(form.quantity_required), price_per_bag: parseFloat(form.price_per_bag), order_date: form.order_date, notes: form.notes.trim() || null });
       onSuccess(o);
     } catch (e) { setErr(e.message); } finally { setLoading(false); }
   };
@@ -121,6 +134,26 @@ function CreateOrderModal({ onClose, onSuccess }) {
               </button>
             </div>
           )}
+
+          {/* Product */}
+          <div style={fg}>
+            <label style={lbl}>Product *</label>
+            <select required value={`${form.product_name}||${form.grade}`}
+              onChange={e => {
+                const [product_name, grade] = e.target.value.split('||');
+                setForm({ ...form, product_name, grade });
+              }} style={inp}>
+              <option value="||">— Select product —</option>
+              {products.map(p => (
+                <option key={`${p.product_name}||${p.grade}`} value={`${p.product_name}||${p.grade}`}>
+                  {p.product_name} — {p.grade}
+                </option>
+              ))}
+            </select>
+            {products.length === 0 && (
+              <p style={{ fontSize: '11px', color: '#e65100', marginTop: '4px' }}>No stock available. Add batches first.</p>
+            )}
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div style={fg}>
@@ -222,6 +255,7 @@ export default function Orders() {
                 <tr>
                   <th style={thStyle}>Order Code</th>
                   <th style={thStyle}>Client</th>
+                  <th style={thStyle}>Product</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Bags</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>₹/Bag</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Total (₹)</th>
@@ -239,6 +273,7 @@ export default function Orders() {
                     <tr key={o.id}>
                       <td style={{ ...tdStyle, fontFamily: 'monospace', color: '#1a73e8', fontWeight: '600' }}>{o.order_code}</td>
                       <td style={tdStyle}>{o.client_name}</td>
+                      <td style={{ ...tdStyle, fontSize: '12px' }}>{o.product_name ? `${o.product_name} (${o.grade})` : '—'}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{o.quantity_required}</td>
                       <td style={{ ...tdStyle, textAlign: 'right', color: '#555' }}>₹{parseFloat(o.price_per_bag).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>₹{parseFloat(o.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>

@@ -7,6 +7,7 @@ const sections = [
     label: 'Operations',
     description: 'Daily work & data entry',
     links: [
+      { to: '/clients',     label: 'Clients',   sub: 'Add & manage'      },
       { to: '/inventory',   label: 'Stock',     sub: 'Manage inventory'  },
       { to: '/orders',      label: 'Orders',    sub: 'Create & track'    },
       { to: '/dispatch',    label: 'Dispatch',  sub: 'Send out orders'   },

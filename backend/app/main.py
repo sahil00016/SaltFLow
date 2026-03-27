@@ -4,13 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-from .database import Base, engine
+from .database import Base, engine, run_migrations
 from .routers import batches, clients, orders, dispatch, logs, auth
 
 logger = logging.getLogger("saltflow")
 
-# Create all tables on startup
+# Create tables and run column migrations on startup
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 app = FastAPI(
     title="SaltFlow API",

@@ -47,12 +47,14 @@ def dispatch_order(payload: DispatchRequest, db: Session = Depends(get_db)):
             )
 
         # 4. Lock batches with SELECT FOR UPDATE (FIFO — oldest first)
+        #    If the order specifies a product, only dispatch from matching batches.
+        batch_q = db.query(Batch).filter(Batch.remaining_quantity > 0)
+        if order.product_name:
+            batch_q = batch_q.filter(Batch.product_name == order.product_name)
+        if order.grade:
+            batch_q = batch_q.filter(Batch.grade == order.grade)
         available_batches = (
-            db.query(Batch)
-            .filter(Batch.remaining_quantity > 0)
-            .order_by(Batch.arrival_date.asc())
-            .with_for_update()
-            .all()
+            batch_q.order_by(Batch.arrival_date.asc()).with_for_update().all()
         )
 
         # 5. Calculate total available stock
